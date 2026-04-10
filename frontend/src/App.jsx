@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+const axiosInstance = axios.create({
+  baseURL: "https://retail-agent-backend.onrender.com",
+  timeout: 90000, // 90 seconds — enough for Render to wake up
+});
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid
@@ -36,7 +40,7 @@ export default function App() {
 
   async function fetchHealth() {
     try {
-      const res = await axios.get(`${API}/health`);
+      const res = await axiosInstance.get(`/health`);
       setHealth(res.data);
     } catch {
       setHealth({ status: "offline" });
@@ -45,7 +49,7 @@ export default function App() {
 
   async function fetchLatestReport() {
     try {
-      const res = await axios.get(`${API}/reports/latest`);
+      const res = await axiosInstance.get(`/reports/latest`);
       const parsed = parseReport(res.data);
       setReport(parsed);
       setLastRun(res.data.generated_at);
@@ -56,7 +60,7 @@ export default function App() {
 
   async function fetchSalesData() {
     try {
-      const res = await axios.get(`${API}/sales-data?days=7`);
+      const res = await axiosInstance.get(`/sales-data?days=7`);
       setSalesData(res.data.data);
     } catch {
       setSalesData([]);
@@ -67,7 +71,7 @@ export default function App() {
     setRunning(true);
     setError(null);
     try {
-      const res = await axios.post(`${API}/run-agent`);
+      const res = await axiosInstance.post(`/run-agent`);
       const parsed = typeof res.data.report === "object"
         ? res.data.report
         : JSON.parse(res.data.report);
@@ -75,7 +79,7 @@ export default function App() {
       setLastRun(new Date().toISOString().split("T")[0]);
       await fetchSalesData();
     } catch (e) {
-      setError("Agent run failed. Make sure the backend is running.");
+      setError("Agent is waking up — this can take 60 seconds on first run. Please try again.");
     } finally {
       setRunning(false);
     }
