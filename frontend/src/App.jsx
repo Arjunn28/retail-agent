@@ -5,7 +5,8 @@ import {
   ResponsiveContainer, CartesianGrid
 } from "recharts";
 
-const API = "http://localhost:8000";
+// const API = "http://localhost:8000";
+const API = "https://retail-agent-backend.onrender.com";
 
 // Helper — safely parse the report whether it's a string or already an object
 function parseReport(raw) {
