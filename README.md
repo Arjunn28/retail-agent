@@ -10,9 +10,9 @@
 
 ## What this project is
 
-Most AI projects are **reactive** — a user types a question, an LLM answers it.
+Most AI projects are **reactive**: a user types a question, an LLM answers it.
 
-This project is **autonomous** — the agent wakes up every hour, decides which tools 
+This project is **autonomous**: the agent wakes up every hour, decides which tools 
 to call, reasons over real retail data, and writes a structured intelligence report. 
 Nobody triggers it. Nobody tells it what to do. It just runs.
 
@@ -26,15 +26,15 @@ how production AI systems are actually being built in 2026.
 Retail operations teams are drowning in data but starved for insight. A store running 
 10+ product lines across categories cannot realistically monitor:
 
-- Which products are spiking or crashing in sales
-- Which SKUs are days away from a stockout
+- Which products are spiking or crashing in sales?
+- Which SKUs are days away from a stockout?
 - Which categories are underperforming vs. their baseline
 
 A human analyst checking dashboards manually can do this once a day, maybe. An 
 autonomous agent can do it every hour, surface only what matters, and write a 
 plain-English report with specific recommendations.
 
-**Target users:** Retail operations managers, inventory planners, and e-commerce 
+**Target users:** Retail operations managers, inventory planners and e-commerce 
 business owners who need continuous intelligence without building a data team.
 
 ---
@@ -71,11 +71,11 @@ The agent uses **Llama 3.3 70B** (via **Groq API** — free tier) as its reasoni
 
 The agent loop works in two stages:
 
-**Stage 1 — Tool execution (Python-orchestrated)**  
+**Stage 1: Tool execution (Python-orchestrated)**  
 Python calls all 4 tools in sequence and collects their outputs. This is reliable, 
-fast, and fully debuggable — no framework magic.
+fast and fully debuggable — no framework magic.
 
-**Stage 2 — LLM reasoning**  
+**Stage 2: LLM reasoning**  
 All tool outputs are passed to the LLM in a single prompt. The LLM reasons over 
 the data and produces a structured JSON report with:
 - A natural language summary with real numbers
@@ -91,13 +91,13 @@ reliability, the LLM handles reasoning quality.
 FastAPI server. On startup, the server seeds the database and starts the scheduler 
 automatically. No cron jobs. No external orchestration. Just a Python process.
 
-Server starts
-↓
-Seed database (if empty)
-↓
-Start background scheduler
-↓
-Every hour → add today's data → run agent → save report
+- Server Starts
+- Seed database (if empty) 
+- Start background scheduler 
+- Every hour
+- add today's data
+- run agent 
+- save report
 
 ### 5. The API
 **FastAPI** exposes the agent and its data through 5 REST endpoints:
@@ -121,9 +121,7 @@ A **React + Vite** frontend visualizes everything in real time:
 - Anomaly alerts with spike/crash ratios
 - Inventory alerts with days of stock remaining
 - Actionable recommendations from the agent
-- "Run Agent Now" button — triggers the backend and updates the dashboard live
-
----
+- "Run Agent Now" button: triggers the backend and updates the dashboard live
 
 ---
 
@@ -217,3 +215,5 @@ is used in production systems at companies building AI-native operations tooling
 > 15 minutes of inactivity. First request after sleep takes ~60 seconds to wake up. 
 > This is a hosting limitation, not an application one — in production this would run 
 > on a dedicated instance.
+
+---
