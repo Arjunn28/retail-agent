@@ -30,7 +30,7 @@ def generate_sales_for_day(product: dict, sale_date: date, inventory: int) -> Da
     """Generate one row of sales data for a product on a given date."""
 
     # Auto-restock if inventory runs low — keeps data realistic over long periods
-    if inventory < 20:
+    if inventory < 50:
         inventory = product["stock"]
 
     # Add realistic noise: sales vary ±30% day to day
