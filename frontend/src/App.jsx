@@ -151,7 +151,7 @@ export default function App() {
       setLastRun(new Date().toISOString().split("T")[0]);
       await fetchSalesData();
     } catch (e) {
-      setError("Agent is waking up — this can take 60 seconds on first run. Please try again.");
+      setError("Agent is waking up, this can take 60 seconds on first run. Please try again.");
     } finally {
       setRunning(false);
     }

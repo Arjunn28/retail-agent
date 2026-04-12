@@ -4,7 +4,6 @@
 
 import os
 import json
-import glob
 from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
@@ -107,38 +106,22 @@ def trigger_agent():
 def get_all_reports():
     """
     Returns a list of all saved reports, newest first.
-    The frontend uses this to show report history.
+    Now reads from SQLite database instead of flat files — persists on Render.
     """
-    report_files = sorted(
-        glob.glob("reports/report_*.json"),
-        reverse=True  # newest first
-    )
-
-    reports = []
-    for filepath in report_files:
-        with open(filepath, "r") as f:
-            try:
-                data = json.load(f)
-                reports.append(data)
-            except json.JSONDecodeError:
-                continue  # skip any malformed files
-
+    from backend.tools import get_all_reports_from_db
+    reports = get_all_reports_from_db()
     return {"count": len(reports), "reports": reports}
 
 @app.get("/reports/latest")
 def get_latest_report():
     """
     Returns only the most recent report.
-    The frontend dashboard shows this on load.
+    Now reads from SQLite database instead of flat files — persists on Render.
     """
-    report_files = sorted(glob.glob("reports/report_*.json"), reverse=True)
-
-    if not report_files:
+    from backend.tools import get_latest_report_from_db
+    data = get_latest_report_from_db()
+    if not data:
         raise HTTPException(status_code=404, detail="No reports found yet.")
-
-    with open(report_files[0], "r") as f:
-        data = json.load(f)
-
     return data
 
 @app.get("/sales-data")

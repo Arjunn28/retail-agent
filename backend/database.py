@@ -23,6 +23,13 @@ class DailySales(Base):
     revenue     = Column(Float, nullable=False)
     inventory   = Column(Integer, nullable=False)  # units remaining in stock
 
+class AgentReport(Base):
+    __tablename__ = "agent_reports"
+
+    id           = Column(Integer, primary_key=True, index=True)
+    generated_at = Column(Date, nullable=False)
+    report       = Column(String, nullable=False)  # JSON string
+
 # This creates the actual table in the database file
 def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)

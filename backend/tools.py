@@ -174,19 +174,62 @@ def get_inventory_status(low_stock_threshold: int = 50) -> str:
 # ─────────────────────────────────────────────
 def save_report(report_content: str) -> str:
     """
-    Saves the agent's final report as a JSON file in the /reports folder.
-    Each report is timestamped so we can see history over time.
+    Saves the agent's final report to the database AND to disk as backup.
+    Using the database means reports persist on Render's free tier.
     """
+    from backend.database import SessionLocal, AgentReport
+    import os
+
+    today = date.today()
+    db = SessionLocal()
+
+    # Check if a report already exists for today — update it if so
+    existing = db.query(AgentReport).filter(
+        AgentReport.generated_at == today
+    ).first()
+
+    if existing:
+        existing.report = report_content
+    else:
+        db.add(AgentReport(
+            generated_at=today,
+            report=report_content,
+        ))
+
+    db.commit()
+    db.close()
+
+    # Also save to disk as backup (works locally)
     os.makedirs("reports", exist_ok=True)
-    timestamp = date.today().isoformat()
-    filename = f"reports/report_{timestamp}.json"
-
-    report = {
-        "generated_at": timestamp,
-        "report": report_content,
-    }
-
+    filename = f"reports/report_{today.isoformat()}.json"
     with open(filename, "w") as f:
-        json.dump(report, f, indent=2)
+        json.dump({"generated_at": today.isoformat(), "report": report_content}, f, indent=2)
 
-    return f"Report saved successfully to {filename}"
+    return f"Report saved successfully to database and {filename}"
+
+
+def get_latest_report_from_db():
+    """Fetches the most recent report from the database."""
+    from backend.database import SessionLocal, AgentReport
+    db = SessionLocal()
+    report = db.query(AgentReport).order_by(
+        AgentReport.generated_at.desc()
+    ).first()
+    db.close()
+    if not report:
+        return None
+    return {"generated_at": report.generated_at.isoformat(), "report": report.report}
+
+
+def get_all_reports_from_db() -> list:
+    """Fetches all reports from the database, newest first."""
+    from backend.database import SessionLocal, AgentReport
+    db = SessionLocal()
+    reports = db.query(AgentReport).order_by(
+        AgentReport.generated_at.desc()
+    ).all()
+    db.close()
+    return [
+        {"generated_at": r.generated_at.isoformat(), "report": r.report}
+        for r in reports
+    ]
