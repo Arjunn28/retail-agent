@@ -79,6 +79,8 @@ def health_check():
 
 @app.post("/run-agent")
 def trigger_agent():
+    from backend.tools import query_sales_db
+    import json
     """
     Manually trigger the agent to run right now.
     The frontend's 'Run Agent Now' button will call this.
@@ -87,10 +89,16 @@ def trigger_agent():
         print("\n[API] Manual agent trigger received.")
         add_todays_data()
         report = run_agent()
+
+        report_parsed = json.loads(report) if isinstance(report, str) else report
+        # sales_data = json.loads(query_sales_db(days=7))
+        sales_data = report_parsed.get("sales_snapshot", json.loads(query_sales_db(days=7)))
+
         return {
             "status": "success",
             "message": "Agent completed successfully",
-            "report": json.loads(report),
+            "report": report_parsed,
+            "sales_data": sales_data,
         }
     except json.JSONDecodeError:
         # Sometimes the LLM wraps the JSON in extra text — handle gracefully
@@ -114,15 +122,27 @@ def get_all_reports():
 
 @app.get("/reports/latest")
 def get_latest_report():
-    """
-    Returns only the most recent report.
-    Now reads from SQLite database instead of flat files — persists on Render.
-    """
-    from backend.tools import get_latest_report_from_db
+    from backend.tools import get_latest_report_from_db, query_sales_db
+    import json
     data = get_latest_report_from_db()
     if not data:
         raise HTTPException(status_code=404, detail="No reports found yet.")
-    return data
+    
+    # Parse the report and attach fresh sales data from the same DB
+    try:
+        report_content = json.loads(data["report"])
+    except (json.JSONDecodeError, TypeError):
+        report_content = data["report"]
+    
+    # Attach current sales data so frontend chart matches the report
+    # sales_data = json.loads(query_sales_db(days=7))
+    sales_data = report_content.get("sales_snapshot", json.loads(query_sales_db(days=7)))
+    
+    return {
+        "generated_at": data["generated_at"],
+        "report": report_content,
+        "sales_data": sales_data
+    }
 
 @app.get("/sales-data")
 def get_sales_data(days: int = 7):

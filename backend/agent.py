@@ -49,6 +49,9 @@ def run_agent():
                      "Revenue and unit totals give context for what normal looks like."
     })
 
+    # Store the exact sales snapshot the agent used — chart will read from this
+    sales_snapshot = sales_data
+
     # ── Step 2: Detect anomalies ──
     print(">> [Step 2] Running anomaly detection...")
     anomaly_raw = detect_anomalies()
@@ -100,16 +103,31 @@ def run_agent():
         "reasoning": reasoning_inv
     })
 
-    # ── Step 4: LLM reasoning ──
+   # ── Step 4: LLM reasoning ──
     print(">> [Step 4] Sending to LLM for analysis...")
     client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-    prompt = f"""
-You are an autonomous retail intelligence agent. Analyze the following retail data 
-and produce a structured JSON report. Use ONLY the data provided — do not invent numbers.
+    # Pre-compute all key metrics in Python — no room for LLM hallucination
+    from collections import defaultdict
+    total_revenue = sum(p["revenue"] for p in sales_data)
+    total_units = sum(p["units_sold"] for p in sales_data)
+    top_by_revenue = max(sales_data, key=lambda x: x["revenue"])
+    top_by_units = max(sales_data, key=lambda x: x["units_sold"])
+    category_revenue = defaultdict(float)
+    for p in sales_data:
+        category_revenue[p["category"]] += p["revenue"]
+    top_category = max(category_revenue, key=category_revenue.get)
 
---- SALES DATA (last 7 days) ---
-{sales_raw}
+    prompt = f"""
+You are an autonomous retail intelligence agent writing a retail performance report.
+Use ONLY the pre-computed metrics below — do not recalculate or invent any numbers.
+
+--- PRE-COMPUTED METRICS (use these exactly) ---
+Total revenue (last 7 days): ${total_revenue:,.2f}
+Total units sold: {total_units:,}
+Top product by revenue: {top_by_revenue['product']} (${top_by_revenue['revenue']:,.2f})
+Top product by units: {top_by_units['product']} ({top_by_units['units_sold']} units)
+Top category by revenue: {top_category} (${category_revenue[top_category]:,.2f})
 
 --- ANOMALY DETECTION ---
 {anomaly_raw}
@@ -118,14 +136,16 @@ and produce a structured JSON report. Use ONLY the data provided — do not inve
 {inventory_raw}
 
 --- YOUR TASK ---
-Write a JSON report with exactly this structure (no extra text, just the JSON):
-{{
+Write a JSON report using EXACTLY the numbers above. Do not add, recalculate or invent:
+{{{{
   "date": "{date.today().isoformat()}",
-  "summary": "2-3 sentences on overall performance using real numbers from the data",
+  "summary": "2-3 sentences using the exact pre-computed numbers provided above",
   "anomalies": ["list each anomaly found, or write No anomalies detected if none"],
   "inventory_alerts": ["list each LOW STOCK product with units remaining and days of stock left"],
   "recommendations": ["3 specific actionable recommendations based on the data"]
-}}
+}}}}
+
+Return only valid JSON, no extra text.
 """
 
     response = client.chat.completions.create(
@@ -161,6 +181,7 @@ Write a JSON report with exactly this structure (no extra text, just the JSON):
 
     report_json["agent_trace"] = trace
     report_json["date"] = date.today().isoformat()
+    report_json["sales_snapshot"] = sales_snapshot  # exact data the agent analyzed
 
     save_report(json.dumps(report_json))
 

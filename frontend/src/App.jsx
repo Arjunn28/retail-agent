@@ -107,7 +107,6 @@ export default function App() {
   useEffect(() => {
     fetchHealth();
     fetchLatestReport();
-    fetchSalesData();
   }, []);
 
   async function fetchHealth() {
@@ -119,25 +118,44 @@ export default function App() {
     }
   }
 
-  async function fetchLatestReport() {
-    try {
-      const res = await axiosInstance.get(`/reports/latest`);
-      const parsed = parseReport(res.data);
-      setReport(parsed);
-      setLastRun(res.data.generated_at);
-    } catch {
-      setReport(null);
-    }
-  }
+  // async function fetchLatestReport() {
+  //   try {
+  //     const res = await axiosInstance.get(`/reports/latest`);
+  //     const parsed = parseReport(res.data);
+  //     setReport(parsed);
+  //     setLastRun(res.data.generated_at);
+  //   } catch {
+  //     setReport(null);
+  //   }
+  // }
 
-  async function fetchSalesData() {
-    try {
-      const res = await axiosInstance.get(`/sales-data?days=7`);
-      setSalesData(res.data.data);
-    } catch {
-      setSalesData([]);
+  async function fetchLatestReport() {
+  try {
+    const res = await axiosInstance.get(`/reports/latest`);
+    const parsed = parseReport(res.data);
+    setReport(parsed);
+    setLastRun(res.data.generated_at);
+    // Use sales data from the same report — ensures chart matches summary
+    if (res.data.sales_data) {
+      setSalesData(res.data.sales_data);
     }
+  } catch {
+    setReport(null);
   }
+}
+
+//   async function fetchSalesData() {
+//   try {
+//     const res = await axiosInstance.get(`/sales-data?days=7`);
+//     setSalesData(res.data.data);
+//   } catch {
+//     setSalesData([]);
+//   }
+// }
+
+async function fetchSalesData() {
+  // Sales data now comes from the report itself — guaranteed to match
+}
 
   async function handleRunAgent() {
     setRunning(true);
@@ -149,9 +167,14 @@ export default function App() {
         : JSON.parse(res.data.report);
       setReport(parsed);
       setLastRun(new Date().toISOString().split("T")[0]);
-      await fetchSalesData();
+      // Pull sales data from the agent run response directly
+      if (res.data.sales_data) {
+        setSalesData(res.data.sales_data);
+      } else {
+        await fetchLatestReport();
+      }
     } catch (e) {
-      setError("Agent is waking up, this can take 60 seconds on first run. Please try again.");
+      setError("Agent is waking up,this can take 60 seconds on first run. Please try again.");
     } finally {
       setRunning(false);
     }
