@@ -216,8 +216,11 @@ cp .env.example .env
 `.env` file structure:
 
 GROQ_API_KEY=your_groq_api_key
+
 ALERT_EMAIL_SENDER=your_gmail@gmail.com
+
 ALERT_EMAIL_PASSWORD=your_gmail_app_password
+
 ALERT_EMAIL_RECEIVER=your_gmail@gmail.com
 
 ```bash
