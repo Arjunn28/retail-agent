@@ -196,7 +196,9 @@ async function fetchSalesData() {
     ?.filter(a => !a.toLowerCase().includes("no anomal")).length ?? 0;
 
   return (
-    <div className="app">
+    
+    // <div className="app ">
+    <div className="app min-h-screen flex flex-col">
 
       {/* Header */}
       <header>
@@ -206,7 +208,7 @@ async function fetchSalesData() {
           {health?.status === "online" ? "Agent online" : "Agent offline"}
         </div>
       </header>
-
+    <div className="flex-grow">
       {/* Error */}
       {error && <div className="error-banner">{error}</div>}
 
@@ -352,5 +354,34 @@ async function fetchSalesData() {
     {/* Agent reasoning trace */}
     {report?.agent_trace && <AgentTrace trace={report.agent_trace} />}
     </div>
+        
+{/* <footer className="fixed bottom-0 left-0 w-full text-center bg-white border-t border-gray-200 py-3 z-40">
+  <a
+    href="https://github.com/Arjunn28/retail-agent"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="text-gray-700 hover:text-black transition"
+  >
+    Built by Arjun · Data & AI · 2026
+  </a>
+</footer> */}
+
+    {/* Fixed footer */}
+    <div style={{
+      position: "fixed",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      textAlign: "center",
+      padding: "12px",
+      fontSize: "12px",
+      color: "#888",
+      backgroundColor: "#f4f5f7",
+      borderTop: "0.5px solid #e0e0e0",
+      zIndex: 1000,
+    }}>
+      Built by Arjun · Data & AI · 2026
+    </div>
+   </div>
   );
 }
