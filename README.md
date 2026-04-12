@@ -1,7 +1,7 @@
 # Retail Intelligence Agent
 
 > An autonomous AI agent that monitors retail performance, detects statistical 
-> anomalies, and sends proactive email alerts — on a schedule, without any human input.
+> anomalies and sends proactive email alerts on a schedule, without any human input.
 
 **Live Demo:** [retail-agent-self.vercel.app](https://retail-agent-self.vercel.app)  
 **Backend API:** [retail-agent-backend.onrender.com/docs](https://retail-agent-backend.onrender.com/docs)  
