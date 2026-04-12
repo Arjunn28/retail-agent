@@ -121,7 +121,7 @@ The email includes:
 - Direct link to the live dashboard
 - Sent via Gmail SMTP — zero infrastructure cost
 
-![Email Alert Example](assets/email alert screenshot.png)
+![Email Alert Example](assets/email_alert_screenshot.png)
 
 ### 6. Agent reasoning trace
 
