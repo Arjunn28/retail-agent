@@ -59,15 +59,19 @@ def run_agent():
     anomaly_data = [] if is_no_anomaly else json.loads(anomaly_raw)
 
     if anomaly_data:
-        flagged = [f"{a['product']} ({a['type']}, {a['ratio']}x ratio)" for a in anomaly_data]
+        # flagged = [f"{a['product']} ({a['type']}, {a['ratio']}x ratio)" for a in anomaly_data]
+        flagged = [f"{a['product']} ({a['type']}, z={a['z_score']}, {a.get('confidence', 'N/A')} confidence)" for a in anomaly_data]
+
         obs = f"Detected {len(anomaly_data)} anomalies: {', '.join(flagged)}."
-        reasoning = ("These products deviate significantly from their 30-day baseline. "
-                     "Spikes may indicate viral demand or promotions. "
-                     "Crashes may indicate supply issues or competitor activity.")
+        reasoning = ("Z-score analysis detected statistically significant deviations from "
+                    "the 30-day baseline. A z-score above 2.0 means the product is selling "
+                    "more than 2 standard deviations above its mean — less than 5% chance "
+                    "this is normal variation.")
     else:
         obs = "No anomalies detected. All products selling within normal range of their 30-day average."
-        reasoning = "Compared each product's 3-day rolling average to its 30-day baseline. " \
-                    "Nothing exceeded the 2x spike or 50% crash threshold today."
+        reasoning = ("Z-score computed for all 10 products against their 30-day mean and "
+             "standard deviation. No product exceeded the ±2.0 standard deviation "
+             "threshold — all sales within expected statistical range.")
 
     trace.append({
         "step": 2,
