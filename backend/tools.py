@@ -269,3 +269,134 @@ def get_all_reports_from_db() -> list:
         {"generated_at": r.generated_at.isoformat(), "report": r.report}
         for r in reports
     ]
+
+
+# ─────────────────────────────────────────────
+# TOOL 5: Send alert email
+# The agent calls this when it finds anomalies or critical stockouts.
+# This is the "action layer" — the agent doesn't just report, it acts.
+# ─────────────────────────────────────────────
+def send_alert_email(anomalies: list, inventory_alerts: list, summary: str) -> str:
+    """
+    Sends a real email alert when the agent detects critical issues.
+    Only sends if there are anomalies OR products with less than 2 days of stock.
+    Uses Gmail SMTP — free, no third-party service needed.
+    """
+    import smtplib
+    import os
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    sender = os.getenv("ALERT_EMAIL_SENDER")
+    password = os.getenv("ALERT_EMAIL_PASSWORD")
+    receiver = os.getenv("ALERT_EMAIL_RECEIVER")
+
+    if not all([sender, password, receiver]):
+        return "Email not configured — skipping alert."
+
+    # Only alert on real anomalies or critical stockouts (< 2 days)
+    real_anomalies = [a for a in anomalies if isinstance(a, dict)]
+    critical_stock = [
+        i for i in inventory_alerts
+        if isinstance(i, dict) and i.get("estimated_days_of_stock", 999) < 2
+    ]
+
+    if not real_anomalies and not critical_stock:
+        return "No critical issues found — email alert not sent."
+
+    # Build the email
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = f"🚨 Retail Agent Alert: {len(real_anomalies)} anomalies, {len(critical_stock)} critical stockouts ({date.today().isoformat()})"
+    msg["From"] = sender
+    msg["To"] = receiver
+
+    # Plain text version
+    text_parts = [
+        f"RETAIL INTELLIGENCE AGENT — ALERT REPORT",
+        f"Date: {date.today().isoformat()}",
+        f"",
+        f"SUMMARY",
+        f"{summary}",
+        f"",
+    ]
+
+    if real_anomalies:
+        text_parts.append("ANOMALIES DETECTED")
+        for a in real_anomalies:
+            text_parts.append(
+                f"• {a['product']} ({a['type']}) — "
+                f"Z-score: {a['z_score']} | Confidence: {a.get('confidence', 'N/A')} | "
+                f"{a['message']}"
+            )
+        text_parts.append("")
+
+    if critical_stock:
+        text_parts.append("CRITICAL STOCKOUTS (< 2 days remaining)")
+        for i in critical_stock:
+            text_parts.append(
+                f"• {i['product']} — {i['units_in_stock']} units, "
+                f"{i['estimated_days_of_stock']} days left"
+            )
+        text_parts.append("")
+
+    text_parts.append(f"View full dashboard: https://retail-agent-self.vercel.app")
+    text_body = "\n".join(text_parts)
+
+    # HTML version — looks much better in email clients
+    anomaly_rows = ""
+    for a in real_anomalies:
+        anomaly_rows += f"""
+        <tr>
+            <td style="padding:8px;border-bottom:1px solid #f0f0f0">{a['product']}</td>
+            <td style="padding:8px;border-bottom:1px solid #f0f0f0;color:#f9a825">{a['type']}</td>
+            <td style="padding:8px;border-bottom:1px solid #f0f0f0">{a['z_score']}</td>
+            <td style="padding:8px;border-bottom:1px solid #f0f0f0">{a.get('confidence','N/A')}</td>
+        </tr>"""
+
+    stock_rows = ""
+    for i in critical_stock:
+        stock_rows += f"""
+        <tr>
+            <td style="padding:8px;border-bottom:1px solid #f0f0f0">{i['product']}</td>
+            <td style="padding:8px;border-bottom:1px solid #f0f0f0;color:#ea4335">{i['units_in_stock']} units</td>
+            <td style="padding:8px;border-bottom:1px solid #f0f0f0;color:#ea4335">{i['estimated_days_of_stock']} days</td>
+        </tr>"""
+
+    html_body = f"""
+    <html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+        <div style="background:#1a1a2e;color:white;padding:20px;border-radius:8px;margin-bottom:20px">
+            <h2 style="margin:0">🚨 Retail Intelligence Agent</h2>
+            <p style="margin:4px 0;opacity:0.7">Autonomous alert — {date.today().isoformat()}</p>
+        </div>
+
+        <div style="background:#f9f9f9;padding:16px;border-radius:8px;margin-bottom:16px">
+            <h3 style="margin:0 0 8px">Summary</h3>
+            <p style="margin:0;color:#444">{summary}</p>
+        </div>
+
+        {"<h3>⚡ Anomalies detected</h3><table width='100%' style='border-collapse:collapse'><tr style='background:#f5f5f5'><th style='padding:8px;text-align:left'>Product</th><th style='padding:8px;text-align:left'>Type</th><th style='padding:8px;text-align:left'>Z-Score</th><th style='padding:8px;text-align:left'>Confidence</th></tr>" + anomaly_rows + "</table>" if anomaly_rows else ""}
+
+        {"<h3>📦 Critical stockouts</h3><table width='100%' style='border-collapse:collapse'><tr style='background:#f5f5f5'><th style='padding:8px;text-align:left'>Product</th><th style='padding:8px;text-align:left'>Units left</th><th style='padding:8px;text-align:left'>Days left</th></tr>" + stock_rows + "</table>" if stock_rows else ""}
+
+        <div style="margin-top:24px;padding:16px;background:#e8f5e9;border-radius:8px">
+            <a href="https://retail-agent-self.vercel.app"
+               style="color:#2d7a3a;font-weight:500;text-decoration:none">
+               View full dashboard →
+            </a>
+        </div>
+    </body></html>
+    """
+
+    msg.attach(MIMEText(text_body, "plain"))
+    msg.attach(MIMEText(html_body, "html"))
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender, password)
+            server.sendmail(sender, receiver, msg.as_string())
+        return f"Alert email sent successfully to {receiver}"
+    except Exception as e:
+        return f"Email failed: {str(e)}"

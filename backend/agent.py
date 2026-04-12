@@ -12,6 +12,7 @@ from backend.tools import (
     detect_anomalies,
     get_inventory_status,
     save_report,
+    send_alert_email,  # add this
 )
 
 load_dotenv()
@@ -51,6 +52,18 @@ def run_agent():
 
     # Store the exact sales snapshot the agent used — chart will read from this
     sales_snapshot = sales_data
+
+
+    # Pre-compute all key metrics in Python — no room for LLM hallucination
+    from collections import defaultdict
+    total_revenue = sum(p["revenue"] for p in sales_data)
+    total_units = sum(p["units_sold"] for p in sales_data)
+    top_by_revenue = max(sales_data, key=lambda x: x["revenue"])
+    top_by_units = max(sales_data, key=lambda x: x["units_sold"])
+    category_revenue = defaultdict(float)
+    for p in sales_data:
+        category_revenue[p["category"]] += p["revenue"]
+    top_category = max(category_revenue, key=category_revenue.get)
 
     # ── Step 2: Detect anomalies ──
     print(">> [Step 2] Running anomaly detection...")
@@ -107,20 +120,33 @@ def run_agent():
         "reasoning": reasoning_inv
     })
 
+
+    # ── Step 3.5: Send alert email if critical issues found ──
+    print(">> [Step 3.5] Checking if alert email needed...")
+    inventory_data_parsed = json.loads(inventory_raw)
+    email_result = send_alert_email(
+        anomalies=anomaly_data if anomaly_data else [],
+        inventory_alerts=inventory_data_parsed,
+        summary=f"Agent run on {date.today().isoformat()}. "
+                f"Total revenue: ${total_revenue:,.2f}. "
+                f"Top product: {top_by_revenue['product']}."
+                if 'total_revenue' in dir() else "See dashboard for details."
+    )
+    print(f">> {email_result}")
+
+    trace.append({
+        "step": "3.5",
+        "action": "Send alert email",
+        "tool": "send_alert_email (Gmail SMTP)",
+        "observation": email_result,
+        "reasoning": "Agent sends proactive alerts only when anomalies or critical "
+                     "stockouts are detected — not on every run. This is the action "
+                     "layer that makes the system autonomous, not just analytical."
+    })
+
    # ── Step 4: LLM reasoning ──
     print(">> [Step 4] Sending to LLM for analysis...")
     client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-
-    # Pre-compute all key metrics in Python — no room for LLM hallucination
-    from collections import defaultdict
-    total_revenue = sum(p["revenue"] for p in sales_data)
-    total_units = sum(p["units_sold"] for p in sales_data)
-    top_by_revenue = max(sales_data, key=lambda x: x["revenue"])
-    top_by_units = max(sales_data, key=lambda x: x["units_sold"])
-    category_revenue = defaultdict(float)
-    for p in sales_data:
-        category_revenue[p["category"]] += p["revenue"]
-    top_category = max(category_revenue, key=category_revenue.get)
 
     prompt = f"""
 You are an autonomous retail intelligence agent writing a retail performance report.
