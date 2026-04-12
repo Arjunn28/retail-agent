@@ -5,7 +5,7 @@
 
 **Live Demo:** [retail-agent-self.vercel.app](https://retail-agent-self.vercel.app)  
 **Backend API:** [retail-agent-backend.onrender.com/docs](https://retail-agent-backend.onrender.com/docs)  
-**Author:** Arjun A N — [GitHub](https://github.com/Arjunn28)
+**Author:** Arjun A N
 
 ---
 
@@ -17,8 +17,8 @@ This project is **autonomous**: the agent wakes up every hour, decides which too
 to call, reasons over real retail data, detects statistical anomalies, and sends 
 formatted email alerts. Nobody triggers it. Nobody tells it what to do. It just runs.
 
-This is the architectural shift from "AI chatbot" to "AI agent" — and it reflects 
-how production AI systems are actually being built in 2026.
+This is the architectural shift from "AI chatbot" to "AI agent" 
+It reflects how production AI systems are actually being built in 2026.
 
 ---
 
