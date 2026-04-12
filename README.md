@@ -51,7 +51,7 @@ products in 3 categories (Electronics, Apparel, Health). The simulator introduce
 - Random anomaly events (5% spike probability, 3% crash probability)
 - Automatic restocking when inventory runs low
 
-All data is stored in **SQLite** via **SQLAlchemy** — lightweight, zero infrastructure, 
+All data is stored in **SQLite** via **SQLAlchemy**. lightweight; zero infrastructure; 
 runs anywhere.
 
 ### 2. The tools (what the agent can do)
@@ -109,19 +109,19 @@ the data and produces a structured JSON report with:
 This two-stage design separates concerns cleanly — Python handles tool execution 
 reliability, the LLM handles reasoning quality.
 
-### 5. Email alerts — the action layer
+### 5. Email alerts: The action layer
 
 When the agent detects anomalies or critical stockouts (less than 2 days of stock 
 remaining), it automatically sends a formatted HTML email alert. No human trigger. 
 No manual check required.
 
 The email includes:
-- Anomaly table with product name, type, z-score, and confidence percentage
+- Anomaly table with product name, type, z-score and confidence percentage
 - Critical stockout table with units remaining and days left
 - Direct link to the live dashboard
 - Sent via Gmail SMTP — zero infrastructure cost
 
-![Email Alert](assets/email-alert.png)
+![Email Alert Example](assets/email alert screenshot.png)
 
 ### 6. Agent reasoning trace
 
