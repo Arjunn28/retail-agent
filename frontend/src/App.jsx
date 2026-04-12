@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+
 const axiosInstance = axios.create({
-  baseURL: "https://retail-agent-backend.onrender.com",
-  timeout: 90000, // 90 seconds — enough for Render to wake up
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
+  timeout: 90000,
 });
+
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid
@@ -21,6 +23,76 @@ function parseReport(raw) {
   } catch {
     return null;
   }
+}
+
+// Reasoning trace panel — shows the agent's step-by-step thinking
+function AgentTrace({ trace }) {
+  if (!trace || trace.length === 0) return null;
+
+  const toolColors = {
+    "query_sales_db": "#e8f0fe",
+    "detect_anomalies": "#fff8e1",
+    "get_inventory_status": "#fdecea",
+    "save_report": "#e8f5e9",
+    "llama-3.3-70b-versatile (Groq)": "#f3e8fd",
+  };
+
+  const toolLabels = {
+    "query_sales_db": "Sales DB",
+    "detect_anomalies": "Anomaly Engine",
+    "get_inventory_status": "Inventory Check",
+    "save_report": "Report Saved",
+    "llama-3.3-70b-versatile (Groq)": "LLM Reasoning",
+  };
+
+  return (
+    <div className="section">
+      <h2>Agent reasoning trace</h2>
+      <p style={{ fontSize: "0.8rem", color: "#888", marginBottom: "1rem" }}>
+        Step-by-step log of what the agent observed and why it made each decision.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        {trace.map((step, i) => (
+          <div key={i} style={{
+            background: toolColors[step.tool] || "#f9f9f9",
+            borderRadius: "8px",
+            padding: "12px 14px",
+            borderLeft: "3px solid #ccc",
+          }}>
+            <div style={{
+              display: "flex", alignItems: "center",
+              gap: "8px", marginBottom: "6px"
+            }}>
+              <span style={{
+                fontSize: "11px", fontWeight: 600,
+                background: "rgba(0,0,0,0.08)",
+                padding: "2px 8px", borderRadius: "20px"
+              }}>
+                Step {step.step}
+              </span>
+              <span style={{ fontSize: "12px", fontWeight: 600, color: "#333" }}>
+                {step.action}
+              </span>
+              <span style={{
+                fontSize: "10px", color: "#666",
+                marginLeft: "auto",
+                background: "rgba(0,0,0,0.06)",
+                padding: "2px 6px", borderRadius: "4px"
+              }}>
+                {toolLabels[step.tool] || step.tool}
+              </span>
+            </div>
+            <p style={{ fontSize: "12px", color: "#444", marginBottom: "4px", lineHeight: 1.5 }}>
+              <strong>Observed:</strong> {step.observation}
+            </p>
+            <p style={{ fontSize: "12px", color: "#666", lineHeight: 1.5 }}>
+              <strong>Reasoning:</strong> {step.reasoning}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function App() {
@@ -254,7 +326,8 @@ export default function App() {
           <p className="no-data">No report yet. Click "Run Agent Now" to generate one.</p>
         </div>
       )}
-
+    {/* Agent reasoning trace */}
+    {report?.agent_trace && <AgentTrace trace={report.agent_trace} />}
     </div>
   );
 }
