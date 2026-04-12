@@ -60,7 +60,7 @@ The agent has 5 Python functions registered as callable tools:
 | Tool | What it does |
 |---|---|
 | `query_sales_db` | Pulls last N days of sales, grouped by product, sorted by revenue |
-| `detect_anomalies` | Z-score statistical analysis — flags products beyond ±2.0 standard deviations with confidence scoring |
+| `detect_anomalies` | Z-score statistical analysis flags products beyond ±2.0 standard deviations with confidence scoring |
 | `get_inventory_status` | Returns stock levels per product with estimated days of stock remaining |
 | `save_report` | Persists the agent's final JSON report to SQLite database |
 | `send_alert_email` | Sends formatted HTML email when anomalies or critical stockouts are detected |
@@ -73,8 +73,8 @@ passes all results to the LLM for reasoning.
 The anomaly engine uses proper statistical analysis — not simple thresholds.
 
 For each product, it computes:
-- **30-day mean** (μ) — average daily units sold over the past month
-- **Standard deviation** (σ) — the natural variance in that product's sales
+- **30-day mean** (μ): average daily units sold over the past month
+- **Standard deviation** (σ): the natural variance in that product's sales
 - **Z-score** = (recent 3-day avg − μ) / σ
 
 A z-score beyond ±2.0 means the product is more than 2 standard deviations from 
@@ -170,41 +170,6 @@ A **React + Vite** frontend visualizes everything in real time:
 - 3 actionable LLM recommendations grounded in real data
 - Agent reasoning trace — 5-step decision log showing the agent's full chain of thought
 - "Run Agent Now" button: triggers the backend and updates the dashboard live
-
----
-
-## Architecture
-
-┌─────────────────────────────────────────────┐
-│              React Dashboard                │
-│  (Vercel) — stats, chart, trace, alerts     │
-└────────────────────┬────────────────────────┘
-│ HTTP (Axios)
-┌────────────────────▼────────────────────────┐
-│             FastAPI Backend                 │
-│             (Render)                        │
-│                                             │
-│  ┌─────────────────────────────────────┐    │
-│  │        APScheduler (hourly)         │    │
-│  └──────────────┬──────────────────────┘    │
-│                 ▼                           │
-│  ┌──────────────────────────────────────┐   │
-│  │           Agent Brain                │   │
-│  │    Llama 3.3 70B via Groq API        │   │
-│  └──┬──────┬──────┬──────┬─────────────┘   │
-│     │      │      │      │                 │
-│  Sales  Z-Score  Inv.  Email               │
-│  Query  Detect  Check  Alert               │
-│     └──────┴──────┴──────┘                 │
-│                 │                           │
-│  ┌──────────────▼──────────────────────┐    │
-│  │        SQLite Database              │    │
-│  │  daily_sales + agent_reports        │    │
-│  └─────────────────────────────────────┘    │
-└─────────────────────────────────────────────┘
-│
-Gmail SMTP
-(alert emails sent here)
 
 ---
 
