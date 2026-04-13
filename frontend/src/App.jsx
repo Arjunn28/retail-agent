@@ -302,7 +302,12 @@ async function fetchSalesData() {
                   {report.anomalies.map((a, i) => (
                     <li key={i} className="alert-item anomaly">
                       <span className="alert-icon">⚡</span>
-                      <span>{a}</span>
+                      <span>
+                        {typeof a === "string"
+                          ? a
+                          : `${a.product} (${a.type}) — Z-score: ${a.z_score}, Confidence: ${a.confidence}`
+                        }
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -319,7 +324,12 @@ async function fetchSalesData() {
                   {report.inventory_alerts.map((a, i) => (
                     <li key={i} className="alert-item inventory">
                       <span className="alert-icon">📦</span>
-                      <span>{a}</span>
+                      <span>
+                        {typeof a === "string"
+                          ? a
+                          : `${a.product} — ${a.units_in_stock} units remaining, ${a.estimated_days_of_stock} days of stock left`
+                        }
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -337,7 +347,7 @@ async function fetchSalesData() {
                 {report.recommendations.map((r, i) => (
                   <li key={i} className="alert-item recommendation">
                     <span className="alert-icon">✓</span>
-                    <span>{r}</span>
+                    <span>{typeof r === "string" ? r : JSON.stringify(r)}</span>
                   </li>
                 ))}
               </ul>
