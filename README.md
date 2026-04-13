@@ -1,4 +1,4 @@
-# Retail Intelligence Agent
+# Sentinel AI: Autonomous Retail Intelligence Agent 
 
 > An autonomous AI agent that monitors retail performance, detects statistical 
 > anomalies and sends proactive email alerts on a schedule, without any human input.
@@ -88,7 +88,7 @@ Recent avg: 91.0 units vs mean: 40.3 ± 21.61
 This is how anomaly detection works at scale in production retail systems.
 
 ### 4. The agent brain
-The agent uses **Llama 3.3 70B** (via **Groq API** — free tier) as its reasoning engine.
+The agent uses **Llama 3.3 70B** (via **Groq API**: free tier) as its reasoning engine.
 
 The agent loop works in two stages:
 
@@ -125,16 +125,16 @@ The email includes:
 
 ### 6. Agent reasoning trace
 
-Every run produces a full reasoning trace — visible on the dashboard — showing 
+Every run produces a full reasoning trace, visible on the dashboard, showing 
 exactly what the agent observed and why it made each decision at every step. This 
 makes the LLM's reasoning transparent and auditable, not a black box.
 
-Step 1 → Query sales database     → establish baseline performance
-Step 2 → Z-score anomaly detection → flag statistical outliers with confidence
-Step 3 → Inventory check           → identify stockout risks
-Step 3.5 → Send alert email        → act on critical findings immediately
-Step 4 → LLM reasoning             → synthesize all findings into report
-Step 5 → Save report               → persist to database for dashboard
+- Step 1 → Query sales database: Establish baseline performance
+- Step 2 → Z-score anomaly detection: Flag statistical outliers with confidence
+- Step 3 → Inventory check: Identify stockout risks
+- Step 3.5 → Send alert email: Act on critical findings immediately
+- Step 4 → LLM reasoning: Synthesize all findings into report
+- Step 5 → Save report: Persist to database for dashboard
 
 ### 7. The scheduler
 **APScheduler** runs the full agent loop every hour as a background job inside the 
@@ -163,12 +163,12 @@ Full interactive API documentation auto-generated at `/docs`.
 A **React + Vite** frontend visualizes everything in real time:
 
 - 4 stat cards: 7-day revenue, units sold, out-of-stock count, anomaly count
-- Bar chart of revenue by product — sourced from the exact same data the agent analyzed
+- Bar chart of revenue by product: sourced from the exact same data the agent analyzed
 - LLM-generated summary using pre-computed exact figures (no hallucination)
 - Anomaly alerts with z-score and confidence percentage
 - Inventory alerts with days of stock remaining
 - 3 actionable LLM recommendations grounded in real data
-- Agent reasoning trace — 5-step decision log showing the agent's full chain of thought
+- Agent reasoning trace: 5-step decision log showing the agent's full chain of thought
 - "Run Agent Now" button: triggers the backend and updates the dashboard live
 
 ---
@@ -177,7 +177,7 @@ A **React + Vite** frontend visualizes everything in real time:
 
 | Layer | Technology | Role |
 |---|---|---|
-| LLM | Llama 3.3 70B (Groq) | Reasoning engine — free, fast |
+| LLM | Llama 3.3 70B (Groq) | Reasoning engine: free, fast |
 | Anomaly detection | Z-score statistics | Production-grade outlier detection |
 | Email alerts | Gmail SMTP (smtplib) | Autonomous action layer |
 | Backend | FastAPI | REST API + agent orchestration |
@@ -273,7 +273,7 @@ is used in production systems at companies building AI-native operations tooling
 ## Author
 
 **Arjun A N**  
-[GitHub](https://github.com/Arjunn28) · [Live Demo](https://retail-agent-self.vercel.app)
+[GitHub](https://github.com/Arjunn28) · [Live Demo](https://retail-agent-self.vercel.app) · [LinkedIn](https://www.linkedin.com/in/arjun-an/)
 
 ---
 

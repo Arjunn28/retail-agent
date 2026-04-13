@@ -47,8 +47,8 @@ async def lifespan(app: FastAPI):
 # FastAPI app
 # ─────────────────────────────────────────────
 app = FastAPI(
-    title="Retail Intelligence Agent API",
-    description="Autonomous agent that monitors retail KPIs and generates reports",
+    title="Sentinel AI: Autonomous Retail Intelligence Agent",
+    description="Autonomous multi-agent system for retail monitoring and anomaly detection",
     version="1.0.0",
     lifespan=lifespan,
 )

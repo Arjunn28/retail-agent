@@ -309,13 +309,13 @@ def send_alert_email(anomalies: list, inventory_alerts: list, summary: str) -> s
 
     # Build the email
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"🚨 Retail Agent Alert: {len(real_anomalies)} anomalies, {len(critical_stock)} critical stockouts ({date.today().isoformat()})"
+    msg["Subject"] = f"🚨 Sentinel AI Agent Alert: {len(real_anomalies)} anomalies, {len(critical_stock)} critical stockouts ({date.today().isoformat()})"
     msg["From"] = sender
     msg["To"] = receiver
 
     # Plain text version
     text_parts = [
-        f"RETAIL INTELLIGENCE AGENT — ALERT REPORT",
+        f"SENTINEL AI AGENT — ALERT REPORT",
         f"Date: {date.today().isoformat()}",
         f"",
         f"SUMMARY",
@@ -368,7 +368,7 @@ def send_alert_email(anomalies: list, inventory_alerts: list, summary: str) -> s
     html_body = f"""
     <html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
         <div style="background:#1a1a2e;color:white;padding:20px;border-radius:8px;margin-bottom:20px">
-            <h2 style="margin:0">🚨 Retail Intelligence Agent</h2>
+            <h2 style="margin:0">🚨 Sentinel AI Intelligence Agent</h2>
             <p style="margin:4px 0;opacity:0.7">Autonomous alert — {date.today().isoformat()}</p>
         </div>
 

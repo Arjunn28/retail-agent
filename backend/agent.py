@@ -23,7 +23,7 @@ def run_agent():
     The trace captures every step — what data was seen, what was flagged, why.
     """
     print("\n" + "="*50)
-    print("RETAIL AGENT STARTING...")
+    print("SENTINEL AI STARTING...")
     print("="*50 + "\n")
 
     trace = []  # this is the agent's reasoning log — every step recorded here

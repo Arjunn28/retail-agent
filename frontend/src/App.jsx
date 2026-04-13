@@ -202,7 +202,17 @@ async function fetchSalesData() {
 
       {/* Header */}
       <header>
-        <h1>Retail Intelligence Agent</h1>
+        <div>
+          <h1 style={{ marginBottom: "2px" }}>Sentinel AI</h1>
+          <p style={{ 
+            fontSize: "14px", 
+            color: "#888", 
+            margin: 0,
+            fontWeight: 500 
+          }}>
+            Autonomous Retail Intelligence Agent
+          </p>
+        </div>
         <div className="status-badge">
           <div className={`status-dot ${health?.status === "online" ? "" : "offline"}`} />
           {health?.status === "online" ? "Agent online" : "Agent offline"}
@@ -390,7 +400,7 @@ async function fetchSalesData() {
       borderTop: "0.5px solid #e0e0e0",
       zIndex: 1000,
     }}>
-      Built by Arjun · Data & AI · 2026
+      Sentinel AI · Built by Arjun · 2026
     </div>
    </div>
   );
