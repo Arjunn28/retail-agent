@@ -40,6 +40,15 @@ business owners who need continuous intelligence without building a data team.
 
 ---
 
+## 🖥️ Project Preview
+
+![Sentinel AI Overview Screenshot](./assets/sentinel_ai_overview_screenshot.png)
+
+---
+
+
+---
+
 ## How it works:
 
 ### 1. Data layer
@@ -109,6 +118,8 @@ the data and produces a structured JSON report with:
 This two-stage design separates concerns cleanly — Python handles tool execution 
 reliability, the LLM handles reasoning quality.
 
+![LLM Reasoning Example](assets/sentinel_ai_llm_output_screenshot.png)
+
 ### 5. Email alerts: The action layer
 
 When the agent detects anomalies or critical stockouts (less than 2 days of stock 
@@ -120,6 +131,11 @@ The email includes:
 - Critical stockout table with units remaining and days left
 - Direct link to the live dashboard
 - Sent via Gmail SMTP — zero infrastructure cost
+
+> ⚠️ **Note on email alerts:** Gmail SMTP is blocked on Render's free tier due to 
+> network restrictions. Email alerts work fully in local development. In a production 
+> deployment this would use a transactional email service like Resend, SendGrid, or 
+> AWS SES which are supported on cloud infrastructure.
 
 ![Email Alert Example](assets/email_alert_screenshot.png)
 
@@ -135,6 +151,8 @@ makes the LLM's reasoning transparent and auditable, not a black box.
 - Step 3.5 → Send alert email: Act on critical findings immediately
 - Step 4 → LLM reasoning: Synthesize all findings into report
 - Step 5 → Save report: Persist to database for dashboard
+
+![Agent Reasoning Trace Example](assets/sentinel_ai_agent_trace_output.png)
 
 ### 7. The scheduler
 **APScheduler** runs the full agent loop every hour as a background job inside the 
@@ -262,7 +280,7 @@ is used in production systems at companies building AI-native operations tooling
 | User asks → LLM answers | Agent runs on schedule, no user needed |
 | Single LLM call | Multi-tool orchestration loop |
 | Simple threshold detection | Z-score statistics with confidence scoring |
-| Stops at insight | Sends real email alerts — action layer |
+| Stops at insight | Sends real email alerts; action layer |
 | Hardcoded logic | LLM decides what to say, Python computes the numbers |
 | Static output | Live dashboard updates on every run |
 | Local script | Deployed, publicly accessible system |
