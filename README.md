@@ -138,7 +138,7 @@ The email includes:
 > AWS SES which are supported on cloud infrastructure.
 
 <!-- ![Email Alert Example](assets/email_alert_screenshot.png) -->
-![Email Alert Example](assets/sentinel_ai_email_example.png)
+![Email Alert Example](assets/sentinel-ai-email-ss.png)
 
 ### 6. Agent reasoning trace
 
