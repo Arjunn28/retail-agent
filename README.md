@@ -3,7 +3,7 @@
 > An autonomous AI agent that monitors retail performance, detects statistical 
 > anomalies and sends proactive email alerts on a schedule, without any human input.
 
-**Live Demo:** [retail-agent-self.vercel.app](https://retail-agent-self.vercel.app)  
+**Live Demo:** [sentinel-ai-agent.vercel.app](https://sentinel-ai-agent.vercel.app/)  
 **Backend API:** [retail-agent-backend.onrender.com/docs](https://retail-agent-backend.onrender.com/docs)  
 **Author:** Arjun A N
 
