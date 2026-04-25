@@ -154,3 +154,36 @@ def get_sales_data(days: int = 7):
     import json
     data = query_sales_db(days=days)
     return {"data": json.loads(data)}
+
+
+@app.post("/seed-anomaly")
+def seed_anomaly():
+    """
+    Injects a sales spike for demo purposes.
+    Forces an anomaly that the agent will detect on next run.
+    """
+    from backend.database import SessionLocal, DailySales
+    from datetime import date, timedelta
+    import random
+
+    db = SessionLocal()
+    count = 0
+
+    for i in range(3):
+        spike_date = date.today() - timedelta(days=i)
+        existing = db.query(DailySales).filter(
+            DailySales.date == spike_date,
+            DailySales.product_id == "P001"
+        ).first()
+        if existing:
+            existing.units_sold = random.randint(85, 100)
+            existing.revenue = existing.units_sold * 59.99
+            count += 1
+
+    db.commit()
+    db.close()
+
+    return {
+        "status": "success",
+        "message": f"Spike injected for Wireless Headphones over {count} days. Run the agent to detect it."
+    }
