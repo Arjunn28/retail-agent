@@ -109,9 +109,14 @@ def run_agent():
         flagged_inv = [f"{p['product']} ({p['units_in_stock']} units, "
                        f"{p['estimated_days_of_stock']} days left)" for p in low_stock]
         obs_inv = f"{len(low_stock)} products below threshold: {', '.join(flagged_inv)}."
-        reasoning_inv = ("Products with less than 50 units are at risk of stockout. "
-                         f"{len(out_of_stock)} products already at zero — "
+        
+        reasoning_inv = ("Products are flagged when they fall below 50 units or when "
+                         "sales velocity leaves under 3 days of stock, whichever comes "
+                         f"first. {len(out_of_stock)} products already at zero — "
                          "immediate restock needed to avoid lost sales.")
+    else:
+        obs_inv = "All products are above the 50-unit threshold and hold more than 3 days of stock at current velocity."
+        reasoning_inv = "No immediate inventory risk detected on either stock level or runway. Monitor weekly."
     else:
         obs_inv = "All products have healthy inventory levels above the 50-unit threshold."
         reasoning_inv = "No immediate inventory risk detected. Monitor weekly."
