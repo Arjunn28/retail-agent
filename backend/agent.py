@@ -17,6 +17,10 @@ from backend.tools import (
 
 load_dotenv()
 
+# Model used for the agent's reasoning step.
+# llama-3.3-70b-versatile was decommissioned by Groq on 2026-08-16.
+LLM_MODEL = "openai/gpt-oss-120b"
+
 def run_agent():
     """
     Runs the full agent loop with a reasoning trace.
@@ -124,14 +128,17 @@ def run_agent():
     # ── Step 3.5: Send alert email if critical issues found ──
     print(">> [Step 3.5] Checking if alert email needed...")
     inventory_data_parsed = json.loads(inventory_raw)
-    email_result = send_alert_email(
-        anomalies=anomaly_data if anomaly_data else [],
-        inventory_alerts=inventory_data_parsed,
-        summary=f"Agent run on {date.today().isoformat()}. "
-                f"Total revenue: ${total_revenue:,.2f}. "
-                f"Top product: {top_by_revenue['product']}."
-                if 'total_revenue' in dir() else "See dashboard for details."
-    )
+    try:
+        email_result = send_alert_email(
+            anomalies=anomaly_data if anomaly_data else [],
+            inventory_alerts=inventory_data_parsed,
+            summary=f"Agent run on {date.today().isoformat()}. "
+                    f"Total revenue: ${total_revenue:,.2f}. "
+                    f"Top product: {top_by_revenue['product']}."
+                    if 'total_revenue' in dir() else "See dashboard for details."
+        )
+    except Exception as e:
+        email_result = f"Email step skipped: {str(e)}"
     print(f">> {email_result}")
 
     trace.append({
@@ -144,7 +151,7 @@ def run_agent():
                      "layer that makes the system autonomous, not just analytical."
     })
 
-   # ── Step 4: LLM reasoning ──
+    # ── Step 4: LLM reasoning ──
     print(">> [Step 4] Sending to LLM for analysis...")
     client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
@@ -178,13 +185,28 @@ Write a JSON report using EXACTLY the numbers above. Do not add, recalculate or 
 Return only valid JSON, no extra text.
 """
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2,
-    )
+    llm_failed = None
+    try:
+        response = client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+        )
+        report_text = response.choices[0].message.content.strip()
+    except Exception as e:
+        llm_failed = str(e)
+        print(f">> [Step 4] LLM call failed: {llm_failed}")
+        report_text = json.dumps({
+            "date": date.today().isoformat(),
+            "summary": f"LLM reasoning unavailable this run: {llm_failed}",
+            "anomalies": flagged if anomaly_data else ["No anomalies detected"],
+            "inventory_alerts": [
+                f"{p['product']} — {p['units_in_stock']} units, "
+                f"{p['estimated_days_of_stock']} days left" for p in low_stock
+            ],
+            "recommendations": [],
+        })
 
-    report_text = response.choices[0].message.content.strip()
     if report_text.startswith("```"):
         report_text = report_text.split("```")[1]
         if report_text.startswith("json"):
@@ -194,8 +216,9 @@ Return only valid JSON, no extra text.
     trace.append({
         "step": 4,
         "action": "LLM reasoning and report generation",
-        "tool": "llama-3.3-70b-versatile (Groq)",
-        "observation": "LLM received all tool outputs and generated structured report.",
+        "tool": f"{LLM_MODEL} (Groq)",
+        "observation": f"LLM call failed: {llm_failed}" if llm_failed
+                       else "LLM received all tool outputs and generated structured report.",
         "reasoning": "Synthesizing sales performance, anomaly signals, and inventory "
                      "risk into a unified report with prioritized recommendations."
     })
