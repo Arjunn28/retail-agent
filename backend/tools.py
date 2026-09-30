@@ -394,7 +394,8 @@ def send_alert_email(anomalies: list, inventory_alerts: list, summary: str) -> s
     msg.attach(MIMEText(html_body, "html"))
 
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        # with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as server:
             server.login(sender, password)
             server.sendmail(sender, receiver, msg.as_string())
         return f"Alert email sent successfully to {receiver}"
