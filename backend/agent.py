@@ -117,9 +117,6 @@ def run_agent():
     else:
         obs_inv = "All products are above the 50-unit threshold and hold more than 3 days of stock at current velocity."
         reasoning_inv = "No immediate inventory risk detected on either stock level or runway. Monitor weekly."
-    else:
-        obs_inv = "All products have healthy inventory levels above the 50-unit threshold."
-        reasoning_inv = "No immediate inventory risk detected. Monitor weekly."
 
     trace.append({
         "step": 3,
