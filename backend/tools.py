@@ -164,11 +164,12 @@ def _normal_cdf(z: float) -> float:
 # TOOL 3: Check inventory status
 # The agent calls this to find products that are running low on stock.
 # ─────────────────────────────────────────────
-def get_inventory_status(low_stock_threshold: int = 50) -> str:
+def get_inventory_status(low_stock_threshold: int = 50, min_days_of_stock: float = 3.0) -> str:
     """
     Returns inventory levels for all products.
-    Products below the threshold are flagged as low stock.
-    This helps the agent warn about potential stockouts.
+    Products are flagged LOW STOCK if they fall below the absolute unit
+    threshold OR if their sales velocity puts them under min_days_of_stock
+    days of remaining runway, whichever triggers first.
     """
     db = SessionLocal()
 
@@ -190,8 +191,13 @@ def get_inventory_status(low_stock_threshold: int = 50) -> str:
 
     inventory_report = []
     for row in rows:
+
         days_left = round(row.inventory / row.units_sold, 1) if row.units_sold > 0 else 999
-        status = "LOW STOCK" if row.inventory < low_stock_threshold else "OK"
+        # Flag on either absolute stock level OR velocity-adjusted runway.
+        # A fast-moving product can hold 100+ units and still stock out in 2 days.
+        status = "LOW STOCK" if (
+            row.inventory < low_stock_threshold or days_left < min_days_of_stock
+        ) else "OK"
 
         inventory_report.append({
             "product": row.product_name,
